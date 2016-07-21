@@ -803,13 +803,10 @@ def fullmap():
 def next_loc():
     # read the posted values from the UI
     _address = request.form['address']
-    _city = request.form['city']
-    _state = request.form['state']
 
-    if _address and _city and _state:
+    if _address :
         global location_arg
-        nextlocation = _address + ','+_city +','+_state
-        location_arg = nextlocation
+        location_arg = _address
         return redirect(url_for('fullmap'))
     else:
         return json.dumps({'html':'<span>Enter the required fields</span>'})

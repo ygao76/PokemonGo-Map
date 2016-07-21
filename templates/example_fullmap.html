@@ -10,20 +10,19 @@
     </head>
     <body>
         <div class="jumbotron">
-          <h1>Pokemon Go Map</h1>
+<!--          <h1>Pokemon Go Map</h1> -->
           <form class="form-signin">
-          <label for="address" class="sr-only">Address</label>
+<!--          <label for="address" class="sr-only">Address</label>  -->
           <input type="address" name="address" id="address" class="form-control" placeholder="Address" required autofocus>
-          <label for="city" class="sr-only">City</label>
-          <input type="city" name="city" id="city" class="form-control" placeholder="City" required autofocus>
+<!--           <input type="city" name="city" id="city" class="form-control" placeholder="City" required autofocus>
           <label for="state" class="sr-only">State</label>
           <input type="state" name="state" id="state" class="form-control" placeholder="State" required>
-
-          <button id="btnSignUp" class="btn btn-lg btn-primary btn-block" type="button">Search</button>
+-->
+          <button id="btnSignUp" class="btn btn-lg btn-primary btn-block" type="button">Go</button>
         </form>
         </div>
 
-        <div id="fullmap" style='height:90%;width:100%;top:100px;left:0;position:absolute;z-index:200;'>
+        <div id="fullmap" style='height:80%;width:100%;top:50px;left:0;position:absolute;z-index:200;'>
             {{ fullmap.html }}
 
         </div>
