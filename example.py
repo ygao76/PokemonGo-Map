@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import flask
-from flask import Flask, render_template
+from flask import Flask, render_template, json, request, redirect, url_for
 from flask_googlemaps import GoogleMaps
 from flask_googlemaps import Map
 from flask_googlemaps import icons
@@ -77,6 +77,7 @@ numbertoteam = {  # At least I'm pretty sure that's it. I could be wrong and the
 }
 origin_lat, origin_lon = None, None
 is_ampm_clock = False
+location_arg = None
 
 # stuff for in-background search thread
 
@@ -566,9 +567,15 @@ def main():
         print '[!] DEBUG mode on'
 
     # only get location for first run
+    print('Variable location_arg: %s' % (location_arg))
+
     if not (FLOAT_LAT and FLOAT_LONG):
       print('[+] Getting initial location')
+      global location_arg
+      location_arg = args.location
       retrying_set_location(args.location)
+    else:
+      retrying_set_location(location_arg)
 
     if args.auto_refresh:
         global auto_refresh
@@ -597,6 +604,7 @@ def main():
     dx = 0
     dy = -1
     steplimit2 = steplimit**2
+    global origin_lat, origin_lon
     for step in range(steplimit2):
         #starting at 0 index
         debug('looping: step {} of {}'.format((step+1), steplimit**2))
@@ -620,6 +628,7 @@ def main():
             (NEXT_LAT != FLOAT_LAT or NEXT_LONG != FLOAT_LONG)):
         print('Update to next location %f, %f' % (NEXT_LAT, NEXT_LONG))
         set_location_coords(NEXT_LAT, NEXT_LONG, 0)
+        print('[+] Update location {} {}'.format(FLOAT_LAT, FLOAT_LONG))
         NEXT_LAT = 0
         NEXT_LONG = 0
     else:
@@ -656,7 +665,7 @@ def process_step(args, api_endpoint, access_token, profile_response,
                 for wild in cell.WildPokemon:
                     hash = wild.SpawnPointId;
                     if hash not in seen.keys() or (seen[hash].TimeTillHiddenMs <= wild.TimeTillHiddenMs):
-                        visible.append(wild)    
+                        visible.append(wild)
                     seen[hash] = wild.TimeTillHiddenMs
                 if cell.Fort:
                     for Fort in cell.Fort:
@@ -787,13 +796,27 @@ def config():
 @app.route('/')
 def fullmap():
     clear_stale_pokemons()
-
     return render_template(
         'example_fullmap.html', key=GOOGLEMAPS_KEY, fullmap=get_map(), auto_refresh=auto_refresh)
 
-
-@app.route('/next_loc')
+@app.route('/next_loc',methods=['POST','GET'])
 def next_loc():
+    # read the posted values from the UI
+    _address = request.form['address']
+    _city = request.form['city']
+    _state = request.form['state']
+
+    if _address and _city and _state:
+        global location_arg
+        nextlocation = _address + ','+_city +','+_state
+        location_arg = nextlocation
+        return redirect(url_for('fullmap'))
+    else:
+        return json.dumps({'html':'<span>Enter the required fields</span>'})
+
+
+@app.route('/next_latlong')
+def next_latlong():
     global NEXT_LAT, NEXT_LONG
 
     lat = flask.request.args.get('lat', '')
@@ -804,7 +827,10 @@ def next_loc():
         print('[+] Saved next location as %s,%s' % (lat, lon))
         NEXT_LAT = float(lat)
         NEXT_LONG = float(lon)
+        origin_lat = NEXT_LAT
+        origin_lon = NEXT_LONG
         return 'ok'
+
 
 
 def get_pokemarkers():
